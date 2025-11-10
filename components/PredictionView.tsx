@@ -19,6 +19,43 @@ const PredictionCard: React.FC<{
     onPredict: (matchId: number, prediction: PredictionResult) => void;
 }> = ({ match, teamA, teamB, userPrediction, onPredict }) => {
     
+    const isCompleted = match.status === 'completed';
+
+    if (isCompleted) {
+        let actualResult: PredictionResult | null = null;
+        if (match.team_a_score !== null && match.team_b_score !== null) {
+            if (match.team_a_score > match.team_b_score) actualResult = 'teamA';
+            else if (match.team_b_score > match.team_a_score) actualResult = 'teamB';
+            else actualResult = 'draw';
+        }
+
+        const isCorrect = actualResult && userPrediction === actualResult;
+        
+        const predictionText = {
+            teamA: `برد ${teamA.name.split(':')[0]}`,
+            teamB: `برد ${teamB.name.split(':')[0]}`,
+            draw: 'مساوی'
+        };
+
+        return (
+             <div className="bg-gray-800 rounded-lg p-4 flex flex-col gap-3 shadow-lg" dir="rtl">
+                <div className="flex justify-between items-center text-center">
+                    <span className="w-2/5 font-semibold text-sm sm:text-base text-right">{teamA.name}</span>
+                    <div className="w-1/5 text-gray-400 text-lg font-bold">{match.team_a_score} : {match.team_b_score}</div>
+                    <span className="w-2/5 font-semibold text-sm sm:text-base text-left">{teamB.name}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs pt-2 border-t border-gray-700 text-gray-400">
+                    <span>پیش‌بینی شما: <span className="font-semibold text-white">{userPrediction ? predictionText[userPrediction] : '---'}</span></span>
+                    {actualResult && userPrediction && (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isCorrect ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                            {isCorrect ? 'درست' : 'نادرست'}
+                        </span>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
     const PredictionButton: React.FC<{ result: PredictionResult; label: string }> = ({ result, label }) => (
         <button
             onClick={() => onPredict(match.id, result)}
@@ -67,11 +104,14 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
     );
   }
 
-  // New robust logic: Filter for ALL scheduled matches
-  const scheduledMatches = matches.filter(m => m.status === 'scheduled');
+  const userPredictedMatchIds = new Set(predictions.map(p => p.match_id));
 
-  // Group them by date for better UI
-  const groupedMatches = scheduledMatches.reduce((acc, match) => {
+  const matchesToShow = matches.filter(m => 
+    m.status === 'scheduled' || 
+    (m.status === 'completed' && userPredictedMatchIds.has(m.id))
+  );
+
+  const groupedMatches = matchesToShow.reduce((acc, match) => {
     const date = match.match_date || 'بدون تاریخ';
     if (!acc[date]) {
       acc[date] = [];
@@ -93,9 +133,9 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold mb-6 text-center text-blue-300" dir="rtl">پیش‌بینی بازی‌های آینده</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center text-blue-300" dir="rtl">پیش‌بینی بازی‌ها</h2>
       
-      {scheduledMatches.length > 0 ? (
+      {matchesToShow.length > 0 ? (
         sortedDates.map(date => (
           <div key={date}>
             <h3 className="text-lg font-semibold text-gray-300 bg-gray-700/50 p-2 rounded-md mb-4 text-center" dir="rtl">
@@ -124,7 +164,7 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
           </div>
         ))
       ) : (
-        <p className="text-center text-gray-400">در حال حاضر بازی برای پیش‌بینی وجود ندارد.</p>
+        <p className="text-center text-gray-400">در حال حاضر بازی برای پیش‌بینی وجود ندارد یا شما هیچ پیش‌بینی ثبت‌شده‌ای برای بازی‌های تمام‌شده ندارید.</p>
       )}
     </div>
   );
