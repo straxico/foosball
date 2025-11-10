@@ -1,0 +1,5 @@
+{
+  "name": "Foosball Tournament Manager",
+  "description": "A web application to manage a foosball tournament. It includes a league table, daily match schedules, admin controls for results and team names, and a dedicated prediction system with a leaderboard.",
+  "requestFramePermissions": []
+}
