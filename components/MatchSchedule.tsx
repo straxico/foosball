@@ -37,46 +37,78 @@ const MatchCard: React.FC<{
     const isCompleted = match.status === 'completed';
 
     return (
-        <div className="bg-gray-800 rounded-lg p-4 flex flex-col gap-4" dir="rtl">
+        <div className="group bg-gradient-to-br from-gray-800/90 to-gray-900/90 rounded-xl p-5 flex flex-col gap-4 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.02]" dir="rtl">
             <div className="flex justify-between items-center text-center">
-                <span className="w-2/5 font-semibold text-sm sm:text-base text-right">{teamA.name}</span>
-                <div className="w-1/5 text-gray-400 text-sm">VS</div>
-                <span className="w-2/5 font-semibold text-sm sm:text-base text-left">{teamB.name}</span>
+                <div className="w-2/5 text-right">
+                    <span className="font-semibold text-sm sm:text-base block transition-colors group-hover:text-blue-400">{teamA.name}</span>
+                    <span className="text-xs text-gray-500">{teamA.players.map(p => p.name.split(' ')[0]).join('، ')}</span>
+                </div>
+                <div className="w-1/5 flex flex-col items-center">
+                    <span className="text-gray-400 text-xs mb-1">{isCompleted ? '⚡' : '⚔️'}</span>
+                    <span className="text-gray-400 text-sm font-bold">VS</span>
+                </div>
+                <div className="w-2/5 text-left">
+                    <span className="font-semibold text-sm sm:text-base block transition-colors group-hover:text-blue-400">{teamB.name}</span>
+                    <span className="text-xs text-gray-500">{teamB.players.map(p => p.name.split(' ')[0]).join('، ')}</span>
+                </div>
             </div>
 
             {isAdmin && (
-                <div className="flex flex-col gap-2 pt-2 border-t border-gray-700">
-                    <label htmlFor={`match-date-${match.id}`} className="text-xs text-gray-400">
-                        {isCompleted ? "تاریخ بازی" : "تغییر تاریخ بازی"}
+                <div className="flex flex-col gap-2 pt-3 border-t border-gray-700/50">
+                    <label htmlFor={`match-date-${match.id}`} className="text-xs text-gray-400 flex items-center gap-1">
+                        📅 {isCompleted ? "تاریخ بازی" : "تغییر تاریخ بازی"}
                     </label>
                     {isCompleted ? (
-                         <p className="text-sm text-gray-500">تاریخ بازی‌های انجام شده قابل تغییر نیست.</p>
+                         <p className="text-sm text-gray-500 bg-gray-900/50 p-2 rounded-lg">تاریخ بازی‌های انجام شده قابل تغییر نیست.</p>
                     ) : (
                         <input
                             type="date"
                             id={`match-date-${match.id}`}
                             defaultValue={match.match_date?.split('T')[0] || ''}
                             onChange={handleDateChange}
-                            className="bg-gray-700 text-white rounded p-1 text-sm w-full"
+                            className="bg-gray-700/70 text-white rounded-lg p-2 text-sm w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                         />
                     )}
                 </div>
             )}
 
             {(isCompleted || isAdmin) && (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 pt-3 border-t border-gray-700/50">
                     <div className="flex justify-center items-center gap-4">
                         {isAdmin ? (
                             <>
-                                <input type="number" placeholder="-" value={scoreA} onChange={(e) => setScoreA(e.target.value)} className="w-14 bg-gray-700 text-center rounded p-1"/>
-                                <span className="text-xl font-bold">:</span>
-                                <input type="number" placeholder="-" value={scoreB} onChange={(e) => setScoreB(e.target.value)} className="w-14 bg-gray-700 text-center rounded p-1"/>
+                                <input 
+                                    type="number" 
+                                    placeholder="-" 
+                                    value={scoreA} 
+                                    onChange={(e) => setScoreA(e.target.value)} 
+                                    className="w-16 bg-gray-700/70 text-center rounded-lg p-2 text-xl font-bold border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                                />
+                                <span className="text-2xl font-bold text-gray-500">:</span>
+                                <input 
+                                    type="number" 
+                                    placeholder="-" 
+                                    value={scoreB} 
+                                    onChange={(e) => setScoreB(e.target.value)} 
+                                    className="w-16 bg-gray-700/70 text-center rounded-lg p-2 text-xl font-bold border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                                />
                             </>
                         ) : (
-                            <span className="text-2xl font-bold tracking-wider">{match.team_a_score} : {match.team_b_score}</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">{match.team_a_score}</span>
+                                <span className="text-2xl font-bold text-gray-500">:</span>
+                                <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">{match.team_b_score}</span>
+                            </div>
                         )}
                     </div>
-                    {isAdmin && <button onClick={handleUpdateResult} className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-4 rounded text-sm w-full transition-colors">ذخیره نتیجه</button>}
+                    {isAdmin && (
+                        <button 
+                            onClick={handleUpdateResult} 
+                            className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-bold py-2 px-4 rounded-lg text-sm w-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/50"
+                        >
+                            💾 ذخیره نتیجه
+                        </button>
+                    )}
                 </div>
             )}
         </div>
@@ -96,24 +128,37 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, teams, isAdmin, 
     return acc;
   }, {} as Record<string, Match[]>);
 
-  const sortedDates = Object.keys(groupedMatches).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  const sortedDates = Object.keys(groupedMatches).sort((a, b) => {
+    if (a === 'بدون تاریخ') return 1;
+    if (b === 'بدون تاریخ') return -1;
+    return new Date(a).getTime() - new Date(b).getTime();
+  });
 
   const formatDate = (dateString: string) => {
+    if (dateString === 'بدون تاریخ') return dateString;
     try {
-        return new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full' }).format(new Date(dateString));
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        return new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full' }).format(date);
     } catch {
         return dateString;
     }
   };
 
   return (
-    <div className="space-y-8">
-      <h2 className="text-2xl font-bold mb-4 text-center text-blue-300" dir="rtl">برنامه کامل بازی‌ها</h2>
-      {matches.length === 0 && <p className="text-center text-gray-400">هیچ بازی برای نمایش وجود ندارد.</p>}
+    <div className="space-y-8 animate-fadeIn">
+      <h2 className="text-3xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-red-400" dir="rtl">
+        📅 برنامه کامل بازی‌ها
+      </h2>
+      {matches.length === 0 && (
+        <div className="text-center p-10 bg-gray-800/50 rounded-xl border border-gray-700/50">
+          <p className="text-gray-400 text-lg">هیچ بازی برای نمایش وجود ندارد.</p>
+        </div>
+      )}
       {sortedDates.map(date => (
-        <div key={date}>
-          <h3 className="text-lg font-semibold text-gray-300 bg-gray-700/50 p-2 rounded-md mb-4 text-center" dir="rtl">
-            {formatDate(date)}
+        <div key={date} className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-200 bg-gradient-to-r from-gray-700/70 to-gray-800/70 p-3 rounded-xl mb-4 text-center border border-gray-700/50 shadow-lg" dir="rtl">
+            📆 {formatDate(date)}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {groupedMatches[date].map(match => {

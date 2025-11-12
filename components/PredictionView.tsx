@@ -38,17 +38,22 @@ const PredictionCard: React.FC<{
         };
 
         return (
-             <div className="bg-gray-800 rounded-lg p-4 flex flex-col gap-3 shadow-lg" dir="rtl">
+             <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 rounded-xl p-5 flex flex-col gap-3 shadow-xl border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300" dir="rtl">
                 <div className="flex justify-between items-center text-center">
                     <span className="w-2/5 font-semibold text-sm sm:text-base text-right">{teamA.name}</span>
-                    <div className="w-1/5 text-gray-400 text-lg font-bold">{match.team_a_score} : {match.team_b_score}</div>
+                    <div className="w-1/5 flex flex-col items-center">
+                        <span className="text-xs text-gray-500 mb-1">⚡</span>
+                        <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                            {match.team_a_score} : {match.team_b_score}
+                        </div>
+                    </div>
                     <span className="w-2/5 font-semibold text-sm sm:text-base text-left">{teamB.name}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs pt-2 border-t border-gray-700 text-gray-400">
+                <div className="flex justify-between items-center text-xs pt-3 border-t border-gray-700/50 text-gray-400">
                     <span>پیش‌بینی شما: <span className="font-semibold text-white">{userPrediction ? predictionText[userPrediction] : '---'}</span></span>
                     {actualResult && userPrediction && (
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isCorrect ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
-                            {isCorrect ? 'درست' : 'نادرست'}
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-lg ${isCorrect ? 'bg-gradient-to-r from-green-500 to-green-600 text-white animate-pulse' : 'bg-gradient-to-r from-red-500 to-red-600 text-white'}`}>
+                            {isCorrect ? '✓ درست' : '✗ نادرست'}
                         </span>
                     )}
                 </div>
@@ -59,25 +64,28 @@ const PredictionCard: React.FC<{
     const PredictionButton: React.FC<{ result: PredictionResult; label: string }> = ({ result, label }) => (
         <button
             onClick={() => onPredict(match.id, result)}
-            className={`w-full py-2 px-2 text-sm rounded-lg transition-all duration-200 transform hover:scale-105 ${
+            className={`group w-full py-3 px-2 text-sm rounded-xl transition-all duration-300 transform hover:scale-105 ${
                 userPrediction === result
-                    ? 'bg-blue-600 text-white font-bold shadow-lg ring-2 ring-blue-400'
-                    : 'bg-gray-700 hover:bg-blue-500'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-xl shadow-blue-500/50 ring-2 ring-blue-400 scale-105'
+                    : 'bg-gray-700/70 hover:bg-gradient-to-r hover:from-blue-500/50 hover:to-purple-500/50 border border-gray-600 hover:border-blue-500'
             }`}
         >
-            {label}
+            <span className="transition-transform group-hover:scale-110 inline-block">{label}</span>
         </button>
     );
 
     return (
-        <div className="bg-gray-800 rounded-lg p-4 flex flex-col gap-4 shadow-lg" dir="rtl">
+        <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 rounded-xl p-5 flex flex-col gap-4 shadow-xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20" dir="rtl">
             <div className="flex justify-between items-center text-center">
                 <span className="w-2/5 font-semibold text-sm sm:text-base text-right">{teamA.name}</span>
-                <div className="w-1/5 text-gray-400 text-sm">VS</div>
+                <div className="w-1/5 flex flex-col items-center">
+                    <span className="text-xs text-gray-500 mb-1">⚔️</span>
+                    <span className="text-gray-400 text-sm font-bold">VS</span>
+                </div>
                 <span className="w-2/5 font-semibold text-sm sm:text-base text-left">{teamB.name}</span>
             </div>
             
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-700">
+            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-700/50">
                 <PredictionButton result="teamA" label={`برد ${teamA.name.split(':')[0]}`} />
                 <PredictionButton result="draw" label="مساوی" />
                 <PredictionButton result="teamB" label={`برد ${teamB.name.split(':')[0]}`} />
@@ -91,12 +99,13 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
   
   if (!user) {
     return (
-      <div className="text-center bg-gray-800/50 p-8 rounded-lg">
-        <h3 className="text-xl font-bold text-white mb-4">برای ثبت پیش‌بینی وارد شوید</h3>
-        <p className="text-gray-400 mb-6">برای شرکت در بخش پیش‌بینی و ثبت امتیاز، لطفاً وارد حساب کاربری خود شوید یا یک حساب جدید بسازید.</p>
+      <div className="text-center bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-10 rounded-2xl border border-gray-700/50 shadow-2xl backdrop-blur-sm animate-fadeIn">
+        <div className="text-6xl mb-4">🔐</div>
+        <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-4">برای ثبت پیش‌بینی وارد شوید</h3>
+        <p className="text-gray-400 mb-6 max-w-md mx-auto">برای شرکت در بخش پیش‌بینی و ثبت امتیاز، لطفاً وارد حساب کاربری خود شوید یا یک حساب جدید بسازید.</p>
         <button 
           onClick={onLoginClick} 
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+          className="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 hover:from-blue-700 hover:via-blue-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-blue-500/50"
         >
           ورود / ثبت‌نام
         </button>
@@ -120,11 +129,18 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
     return acc;
   }, {} as Record<string, Match[]>);
 
-  const sortedDates = Object.keys(groupedMatches).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  const sortedDates = Object.keys(groupedMatches).sort((a, b) => {
+    if (a === 'بدون تاریخ') return 1;
+    if (b === 'بدون تاریخ') return -1;
+    return new Date(a).getTime() - new Date(b).getTime();
+  });
 
   const formatDate = (dateString: string) => {
+    if (dateString === 'بدون تاریخ') return dateString;
     try {
-        return new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full' }).format(new Date(dateString));
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        return new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full' }).format(date);
     } catch {
         return dateString;
     }
@@ -132,14 +148,16 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
 
 
   return (
-    <div className="space-y-8">
-      <h2 className="text-2xl font-bold mb-6 text-center text-blue-300" dir="rtl">پیش‌بینی بازی‌ها</h2>
+    <div className="space-y-8 animate-fadeIn">
+      <h2 className="text-3xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-blue-400 to-purple-400" dir="rtl">
+        🎯 پیش‌بینی بازی‌ها
+      </h2>
       
       {matchesToShow.length > 0 ? (
         sortedDates.map(date => (
-          <div key={date}>
-            <h3 className="text-lg font-semibold text-gray-300 bg-gray-700/50 p-2 rounded-md mb-4 text-center" dir="rtl">
-              {formatDate(date)}
+          <div key={date} className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-200 bg-gradient-to-r from-gray-700/70 to-gray-800/70 p-3 rounded-xl mb-4 text-center border border-gray-700/50 shadow-lg" dir="rtl">
+              📆 {formatDate(date)}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {groupedMatches[date].map(match => {
@@ -164,7 +182,10 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
           </div>
         ))
       ) : (
-        <p className="text-center text-gray-400">در حال حاضر بازی برای پیش‌بینی وجود ندارد یا شما هیچ پیش‌بینی ثبت‌شده‌ای برای بازی‌های تمام‌شده ندارید.</p>
+        <div className="text-center p-10 bg-gray-800/50 rounded-xl border border-gray-700/50">
+          <span className="text-6xl block mb-4">🎯</span>
+          <p className="text-gray-400 text-lg">در حال حاضر بازی برای پیش‌بینی وجود ندارد.</p>
+        </div>
       )}
     </div>
   );

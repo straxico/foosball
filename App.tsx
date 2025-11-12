@@ -122,7 +122,15 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (isLoading) {
-      return <div className="text-center p-10">در حال بارگذاری...</div>;
+      return (
+        <div className="flex flex-col items-center justify-center p-20">
+          <div className="relative w-20 h-20 mb-6">
+            <div className="absolute inset-0 border-4 border-blue-500/30 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
+          </div>
+          <p className="text-xl text-gray-300 animate-pulse">⚽ در حال بارگذاری...</p>
+        </div>
+      );
     }
 
     if (selectedTeamId) {
@@ -171,7 +179,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100">
       {showAuthModal && <Auth onClose={() => setShowAuthModal(false)} />}
       
       {!selectedTeamId && (
@@ -186,6 +194,12 @@ const App: React.FC = () => {
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         {renderContent()}
       </main>
+      
+      {/* Decorative background elements */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+      </div>
     </div>
   );
 };

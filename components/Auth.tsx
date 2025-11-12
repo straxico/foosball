@@ -43,17 +43,17 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
   
   return (
     <div 
-        className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn"
         onClick={onClose}
     >
         <div 
-            className="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-xl shadow-lg relative" 
+            className="w-full max-w-md p-8 space-y-8 bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-gray-800/95 rounded-2xl shadow-2xl border border-gray-700/50 relative backdrop-blur-xl" 
             dir="rtl"
             onClick={(e) => e.stopPropagation()}
         >
             <button 
                 onClick={onClose} 
-                className="absolute top-4 left-4 text-gray-400 hover:text-white"
+                className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all duration-300 hover:rotate-90 bg-gray-700/50 rounded-full p-1"
                 aria-label="Close"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,7 +62,8 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
             </button>
             
             <div>
-                <h2 className="text-3xl font-bold text-center text-white">
+                <div className="text-center text-6xl mb-4">🔐</div>
+                <h2 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
                     {isLogin ? 'ورود به حساب کاربری' : 'ایجاد حساب کاربری'}
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-400">
@@ -73,7 +74,7 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
                             setIsLogin(!isLogin);
                             setError(null);
                         }}
-                        className="font-medium text-blue-400 hover:text-blue-300"
+                        className="font-medium text-blue-400 hover:text-blue-300 transition-colors"
                     >
                         {isLogin ? 'ثبت‌نام کنید' : 'وارد شوید'}
                     </button>
@@ -81,7 +82,7 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
             </div>
 
             <form className="mt-8 space-y-6" onSubmit={handleAuth}>
-                <div className="rounded-md shadow-sm -space-y-px">
+                <div className="rounded-xl shadow-sm space-y-3">
                 <div>
                     <label htmlFor="email-address" className="sr-only">آدرس ایمیل</label>
                     <input
@@ -90,8 +91,8 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                    placeholder="آدرس ایمیل"
+                    className="appearance-none relative block w-full px-4 py-3 border border-gray-600 bg-gray-700/70 text-gray-200 placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="📧 آدرس ایمیل"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     />
@@ -104,8 +105,8 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
                     type="password"
                     autoComplete="current-password"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                    placeholder="رمز عبور"
+                    className="appearance-none relative block w-full px-4 py-3 border border-gray-600 bg-gray-700/70 text-gray-200 placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="🔑 رمز عبور"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     />
@@ -116,13 +117,25 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed"
+                    className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 hover:from-blue-700 hover:via-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-blue-500/50"
                 >
-                    {loading ? 'در حال پردازش...' : (isLogin ? 'ورود' : 'ثبت‌نام')}
+                    {loading ? (
+                        <span className="flex items-center gap-2">
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            در حال پردازش...
+                        </span>
+                    ) : (isLogin ? '🚀 ورود' : '✨ ثبت‌نام')}
                 </button>
                 </div>
             </form>
-            {error && <p className="mt-2 text-sm text-center text-red-400">{error}</p>}
+            {error && (
+                <div className="mt-2 p-3 bg-red-500/20 border border-red-500/50 rounded-xl">
+                    <p className="text-sm text-center text-red-300">⚠️ {error}</p>
+                </div>
+            )}
         </div>
     </div>
   );

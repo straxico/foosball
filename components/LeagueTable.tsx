@@ -51,12 +51,38 @@ const GroupTable: React.FC<GroupTableProps> = ({
     handleCancelEdit();
   };
 
+  const getMedalIcon = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return '🥇';
+      case 2:
+        return '🥈';
+      case 3:
+        return '🥉';
+      default:
+        return null;
+    }
+  };
+
+  const getRankStyle = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border-l-4 border-yellow-500';
+      case 2:
+        return 'bg-gradient-to-r from-gray-400/20 to-gray-500/20 border-l-4 border-gray-400';
+      case 3:
+        return 'bg-gradient-to-r from-orange-700/20 to-orange-800/20 border-l-4 border-orange-600';
+      default:
+        return '';
+    }
+  };
+
   return (
-    <div className="bg-gray-800/50 rounded-xl shadow-2xl p-4 sm:p-6 backdrop-blur-sm">
-      <h3 className="text-xl font-bold mb-4 text-center text-white">{title}</h3>
-      <div className="overflow-x-auto">
+    <div className="bg-gradient-to-br from-gray-800/80 via-gray-800/60 to-gray-900/80 rounded-2xl shadow-2xl p-4 sm:p-6 backdrop-blur-lg border border-gray-700/50">
+      <h3 className="text-2xl font-bold mb-4 text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">{title}</h3>
+      <div className="overflow-x-auto rounded-xl">
         <table className="w-full min-w-[600px] text-sm text-left text-gray-300">
-          <thead className="text-xs text-blue-300 uppercase bg-gray-700/50">
+          <thead className="text-xs text-blue-300 uppercase bg-gradient-to-r from-gray-700/70 to-gray-800/70 backdrop-blur-sm">
             <tr>
               <th scope="col" className="px-4 py-3 text-center">رتبه</th>
               <th scope="col" className="px-6 py-3">تیم</th>
@@ -75,9 +101,17 @@ const GroupTable: React.FC<GroupTableProps> = ({
               
               const isEditing = editingTeamId === team.id;
 
+              const medal = getMedalIcon(index + 1);
+              const rankStyle = getRankStyle(index + 1);
+
               return (
-                <tr key={stat.teamId} className="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
-                  <td className="px-4 py-4 text-center font-bold">{index + 1}</td>
+                <tr key={stat.teamId} className={`border-b border-gray-700/50 hover:bg-gray-700/70 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg ${rankStyle}`}>
+                  <td className="px-4 py-4 text-center font-bold text-lg">
+                    <div className="flex items-center justify-center gap-1">
+                      {medal && <span className="text-xl">{medal}</span>}
+                      <span>{index + 1}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 font-medium text-white whitespace-nowrap">
                     {isEditing ? (
                         <div className="flex items-center gap-2">
@@ -95,27 +129,41 @@ const GroupTable: React.FC<GroupTableProps> = ({
                         <div className="flex flex-col">
                             <div className="flex items-center gap-2">
                                 <span
-                                    className="cursor-pointer hover:text-blue-400 hover:underline"
+                                    className="cursor-pointer hover:text-blue-400 hover:underline transition-all duration-300 hover:translate-x-1"
                                     onClick={() => onSelectTeam(team.id)}
                                 >
                                     {team.name}
                                 </span>
                                 {isAdmin && (
-                                    <button onClick={() => handleEditClick(team)} className="text-gray-400 hover:text-white">
+                                    <button onClick={() => handleEditClick(team)} className="text-gray-400 hover:text-white transition-all duration-300 hover:rotate-12">
                                         <EditIcon />
                                     </button>
                                 )}
                             </div>
-                            <span className="text-xs text-gray-400">{team.players.map(p => p.name).join(', ')}</span>
+                            <span className="text-xs text-gray-500">{team.players.map(p => p.name).join('، ')}</span>
                         </div>
                     )}
                   </td>
-                  <td className="px-2 py-4 text-center">{stat.played}</td>
-                  <td className="px-2 py-4 text-center text-green-400">{stat.won}</td>
-                  <td className="px-2 py-4 text-center text-yellow-400">{stat.drawn}</td>
-                  <td className="px-2 py-4 text-center text-red-400">{stat.lost}</td>
-                  <td className="px-2 py-4 text-center">{stat.goalDifference > 0 ? `+${stat.goalDifference}` : stat.goalDifference}</td>
-                  <td className="px-2 py-4 text-center font-bold text-lg text-white">{stat.points}</td>
+                  <td className="px-2 py-4 text-center text-gray-300">{stat.played}</td>
+                  <td className="px-2 py-4 text-center">
+                    <span className="inline-block px-2 py-0.5 bg-green-500/20 text-green-400 rounded-md font-semibold">{stat.won}</span>
+                  </td>
+                  <td className="px-2 py-4 text-center">
+                    <span className="inline-block px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-md font-semibold">{stat.drawn}</span>
+                  </td>
+                  <td className="px-2 py-4 text-center">
+                    <span className="inline-block px-2 py-0.5 bg-red-500/20 text-red-400 rounded-md font-semibold">{stat.lost}</span>
+                  </td>
+                  <td className="px-2 py-4 text-center">
+                    <span className={`font-semibold ${stat.goalDifference > 0 ? 'text-green-400' : stat.goalDifference < 0 ? 'text-red-400' : 'text-gray-400'}`}>
+                      {stat.goalDifference > 0 ? `+${stat.goalDifference}` : stat.goalDifference}
+                    </span>
+                  </td>
+                  <td className="px-2 py-4 text-center">
+                    <span className="inline-block px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold text-lg shadow-lg">
+                      {stat.points}
+                    </span>
+                  </td>
                 </tr>
               );
             })}
@@ -154,8 +202,10 @@ const LeagueTable: React.FC<LeagueTableProps> = ({ teams, stats, ...props }) => 
   };
 
   return (
-    <div className="space-y-8" dir="rtl">
-      <h2 className="text-2xl font-bold text-center text-blue-300">جدول لیگ - مرحله گروهی</h2>
+    <div className="space-y-8 animate-fadeIn" dir="rtl">
+      <h2 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+        🏆 جدول لیگ - مرحله گروهی
+      </h2>
       <GroupTable title="گروه A" teams={groupA} stats={getStatsForGroup(groupA)} {...commonProps} />
       <GroupTable title="گروه B" teams={groupB} stats={getStatsForGroup(groupB)} {...commonProps} />
     </div>
