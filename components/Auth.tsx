@@ -10,6 +10,8 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
+    const [showMagic, setShowMagic] = useState(false);
+    const [recoveryRequested, setRecoveryRequested] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleAuth = async (event: React.FormEvent) => {
@@ -19,8 +21,14 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
 
     try {
         if (isLogin) {
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
+            if (showMagic) {
+                // send magic link (email OTP)
+                const { error } = await supabase.auth.signInWithOtp({ email });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+            }
         } else {
             const { error } = await supabase.auth.signUp({ 
                 email, 
@@ -90,13 +98,14 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
                     name="email"
                     type="email"
                     autoComplete="email"
-                    required
+                    required={isLogin ? !showMagic : true}
                     className="appearance-none relative block w-full px-4 py-3 border border-gray-600 bg-gray-700/70 text-gray-200 placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="📧 آدرس ایمیل"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     />
                 </div>
+                {!showMagic && (
                 <div>
                     <label htmlFor="password" className="sr-only">رمز عبور</label>
                     <input
@@ -104,13 +113,14 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
                     name="password"
                     type="password"
                     autoComplete="current-password"
-                    required
+                    required={isLogin ? !showMagic : true}
                     className="appearance-none relative block w-full px-4 py-3 border border-gray-600 bg-gray-700/70 text-gray-200 placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="🔑 رمز عبور"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     />
                 </div>
+                )}
                 </div>
 
                 <div>
@@ -129,13 +139,45 @@ const Auth: React.FC<AuthProps> = ({ onClose }) => {
                         </span>
                     ) : (isLogin ? '🚀 ورود' : '✨ ثبت‌نام')}
                 </button>
-                </div>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-3">
+                                    <label className="inline-flex items-center gap-2 text-sm text-gray-300">
+                                        <input type="checkbox" className="rounded" checked={showMagic} onChange={() => setShowMagic(!showMagic)} />
+                                        ورود با لینک جادویی
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            setRecoveryRequested(false);
+                                            setError(null);
+                                            setLoading(true);
+                                            try {
+                                                    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset` });
+                                                if (error) throw error;
+                                                setRecoveryRequested(true);
+                                            } catch (err: any) {
+                                                setError(err.error_description || err.message || 'خطا هنگام ارسال ایمیل بازیابی');
+                                            } finally {
+                                                setLoading(false);
+                                            }
+                                        }}
+                                        className="text-sm underline text-blue-400 hover:text-blue-300"
+                                    >
+                                        فراموشی رمز عبور؟
+                                    </button>
+                                </div>
             </form>
-            {error && (
+                        {error && (
                 <div className="mt-2 p-3 bg-red-500/20 border border-red-500/50 rounded-xl">
                     <p className="text-sm text-center text-red-300">⚠️ {error}</p>
                 </div>
             )}
+                        {recoveryRequested && (
+                            <div className="mt-2 p-3 bg-green-500/10 border border-green-500/30 rounded-xl">
+                                <p className="text-sm text-center text-green-300">📩 ایمیل بازیابی ارسال شد — صندوق ورودی و پوشه اسپم را بررسی کنید.</p>
+                            </div>
+                        )}
         </div>
     </div>
   );

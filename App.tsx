@@ -9,8 +9,9 @@ import PredictionLeaderboard from './components/PredictionLeaderboard';
 import PredictionView from './components/PredictionView';
 import TeamDetails from './components/TeamDetails';
 import Auth from './components/Auth';
+import ResetPassword from './components/ResetPassword';
 
-type View = 'table' | 'schedule' | 'leaderboard' | 'predictions';
+type View = 'table' | 'schedule' | 'leaderboard' | 'predictions' | 'reset';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -24,6 +25,7 @@ const App: React.FC = () => {
   const [teamStats, setTeamStats] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showReset, setShowReset] = useState(false);
 
   const isAdmin = profile?.role === 'admin';
 
@@ -66,6 +68,8 @@ const App: React.FC = () => {
       setSession(session);
       if (session) {
         setShowAuthModal(false); // Close modal on login
+        // If we were showing reset, hide it after auth
+        setShowReset(false);
       }
     });
 
@@ -83,6 +87,19 @@ const App: React.FC = () => {
 
   // Real-time subscription
   useEffect(() => {
+    // When the URL includes a redirect for password recovery we want to show
+    // the set-password page (ResetPassword). We call `getSessionFromUrl` from
+    // the Supabase SDK which parses the URL and returns the redirectType.
+    // Detect Supabase recovery redirect by URL params (type=recovery) and open the reset view.
+    try {
+      const url = new URL(window.location.href);
+      const type = url.searchParams.get('type') || (window.location.hash.includes('type=recovery') ? 'recovery' : null);
+      if (type === 'recovery') {
+        setShowReset(true);
+        setCurrentView('reset');
+      }
+    } catch {}
+
     const channel = supabase
       .channel('db-changes')
       .on('postgres_changes', { event: '*', schema: 'public' }, () => fetchData(session))
@@ -173,6 +190,8 @@ const App: React.FC = () => {
         );
       case 'leaderboard':
         return <PredictionLeaderboard users={leaderboard} />;
+      case 'reset':
+        return <ResetPassword onDone={() => setCurrentView('predictions')} />;
       default:
         return null;
     }
