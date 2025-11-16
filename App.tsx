@@ -87,13 +87,14 @@ const App: React.FC = () => {
 
   // Real-time subscription
   useEffect(() => {
-    // When the URL includes a redirect for password recovery we want to show
-    // the set-password page (ResetPassword). We call `getSessionFromUrl` from
-    // the Supabase SDK which parses the URL and returns the redirectType.
-    // Detect Supabase recovery redirect by URL params (type=recovery) and open the reset view.
+    // When the URL includes a recovery link with access_token in the hash,
+    // Supabase SDK will automatically parse it and establish the session.
+    // We just need to detect if it's a recovery type redirect.
     try {
-      const url = new URL(window.location.href);
-      const type = url.searchParams.get('type') || (window.location.hash.includes('type=recovery') ? 'recovery' : null);
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.substring(1));
+      const type = params.get('type');
+      
       if (type === 'recovery') {
         setShowReset(true);
         setCurrentView('reset');

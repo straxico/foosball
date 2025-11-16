@@ -12,32 +12,35 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ onDone }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Supabase will store session when user clicks the recovery link. We call
-    // getSessionFromUrl so the SDK processes the url and we can proceed.
+    // When the recovery link is clicked, the Supabase SDK automatically
+    // processes the hash fragment (access_token, refresh_token, etc.) and
+    // establishes a session. We just need to validate it's a recovery type.
     (async () => {
       try {
-        // If the SDK supports getSessionFromUrl, call it; otherwise, fallback
-        // to checking the URL for the recovery type param.
-        if ((supabase as any).auth?.getSessionFromUrl) {
-          const { data, error } = await (supabase as any).auth.getSessionFromUrl();
-          if (error) {
-            setStatus(error.message || 'خطا هنگام بارگذاری لینک بازیابی');
-            return;
-          }
-          if (data?.redirectType !== 'recovery') {
-            setStatus('لینک بازیابی نامعتبر است.');
-            return;
-          }
-        } else {
-          // Detect by URL param
-          const url = new URL(window.location.href);
-          const type = url.searchParams.get('type') || (window.location.hash.includes('type=recovery') ? 'recovery' : null);
-          if (type !== 'recovery') {
-            setStatus('لینک بازیابی نامعتبر است.');
-            return;
-          }
+        // Check if the hash contains recovery type
+        const hash = window.location.hash;
+        const params = new URLSearchParams(hash.substring(1));
+        const type = params.get('type');
+        const accessToken = params.get('access_token');
+        
+        if (type !== 'recovery') {
+          setStatus('لینک بازیابی نامعتبر است.');
+          return;
         }
-        // If we reach here, the recovery flow is valid
+        
+        if (!accessToken) {
+          setStatus('توکن دسترسی یافت نشد. لطفاً لینک را دوباره درخواست کنید.');
+          return;
+        }
+        
+        // Get current session - Supabase SDK should have established it from the hash
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session) {
+          setStatus('جلسه برقرار نشد. لطفاً دوباره درخواست کنید.');
+          return;
+        }
+        
+        // Session is valid, we can proceed with password reset
         setStatus(null);
       } catch (err: any) {
         setStatus(err.message || 'خطا هنگام پردازش لینک');
