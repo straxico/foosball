@@ -40,6 +40,10 @@ export interface Profile {
 
 export interface ProfileWithScore extends Profile {
     score: number;
+  totalPredictions?: number;
+  correctPredictions?: number;
+  wrongPredictions?: number;
+  pendingPredictions?: number;
 }
 
 

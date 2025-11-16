@@ -37,16 +37,16 @@ const App: React.FC = () => {
       ]);
       const fetchedStats = await supabaseService.calculateTeamStats(fetchedTeams, fetchedMatches);
       
-      let userPredictions: Prediction[] = [];
-      if (currentSession?.user) {
-          userPredictions = await supabaseService.getPredictions();
-      }
+        // Always fetch predictions so they can be shown publicly even when
+        // a user is not logged in. The UI will use the `session` to decide
+        // whether prediction controls are available for the current viewer.
+        const fetchedPredictions = await supabaseService.getPredictions();
 
       setTeams(fetchedTeams);
       setMatches(fetchedMatches);
       setLeaderboard(fetchedLeaderboard);
       setTeamStats(fetchedStats);
-      setPredictions(userPredictions);
+      setPredictions(fetchedPredictions);
 
     } catch (error) {
       console.error("Failed to fetch data:", error);

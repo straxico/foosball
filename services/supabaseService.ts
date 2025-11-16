@@ -127,18 +127,29 @@ class SupabaseService {
   }
   
   async getLeaderboard(): Promise<ProfileWithScore[]> {
-    const [profiles, completedMatches, predictions] = await Promise.all([
+    const [profiles, matchesResponse, predictions] = await Promise.all([
       this.getProfiles(),
-      supabase.from('matches').select('*').eq('status', 'completed'),
+      supabase.from('matches').select('*'),
       this.getPredictions(),
     ]);
 
-    if (completedMatches.error) throw completedMatches.error;
+    const allMatches = matchesResponse.data || [];
+    const completedMatches = allMatches.filter(m => m.status === 'completed');
 
     const userScores: { [userId: string]: number } = {};
-    profiles.forEach(p => userScores[p.id] = 0);
+    const userTotals: { [userId: string]: number } = {};
+    const userCorrect: { [userId: string]: number } = {};
+    const userWrong: { [userId: string]: number } = {};
+    const userPending: { [userId: string]: number } = {};
+    profiles.forEach(p => {
+      userScores[p.id] = 0;
+      userTotals[p.id] = 0;
+      userCorrect[p.id] = 0;
+      userWrong[p.id] = 0;
+      userPending[p.id] = 0;
+    });
     
-    for (const match of completedMatches.data || []) {
+    for (const match of completedMatches) {
         if (match.team_a_score === null || match.team_b_score === null) continue;
 
         const matchPredictions = predictions.filter(p => p.match_id === match.id);
@@ -155,14 +166,41 @@ class SupabaseService {
         for (const prediction of matchPredictions) {
             if (prediction.prediction === actualResult) {
                 userScores[prediction.user_id] = (userScores[prediction.user_id] || 0) + 1;
+            userCorrect[prediction.user_id] = (userCorrect[prediction.user_id] || 0) + 1;
             }
         }
     }
-
+      // Count totals and pending/wrong for all matches
+      for (const p of predictions) {
+        userTotals[p.user_id] = (userTotals[p.user_id] || 0) + 1;
+        // find match by id
+        const match = allMatches.find(m => m.id === p.match_id);
+        if (!match) continue;
+        if (match.status !== 'completed') {
+          userPending[p.user_id] = (userPending[p.user_id] || 0) + 1;
+          continue;
+        }
+        // completed match; check if prediction matched
+        let actualResult: PredictionResult | null = null;
+        if (match.team_a_score !== null && match.team_b_score !== null) {
+          if (match.team_a_score > match.team_b_score) actualResult = 'teamA';
+          else if (match.team_b_score > match.team_a_score) actualResult = 'teamB';
+          else actualResult = 'draw';
+        }
+        if (actualResult && p.prediction === actualResult) {
+          // counted above already in userCorrect via the previous loop
+        } else {
+          userWrong[p.user_id] = (userWrong[p.user_id] || 0) + 1;
+        }
+      }
     return profiles.map(profile => ({
-        ...profile,
-        score: userScores[profile.id] || 0
-    })).sort((a, b) => b.score - a.score);
+      ...profile,
+      score: userScores[profile.id] || 0,
+      totalPredictions: userTotals[profile.id] || 0,
+      correctPredictions: userCorrect[profile.id] || 0,
+      wrongPredictions: userWrong[profile.id] || 0,
+      pendingPredictions: userPending[profile.id] || 0,
+    })).sort((a, b) => (b.score - a.score));
   }
 
   async calculateTeamStats(teams: Team[], matches: Match[]): Promise<TeamStats[]> {

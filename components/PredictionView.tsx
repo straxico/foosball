@@ -17,7 +17,13 @@ const PredictionCard: React.FC<{
     teamB: Team;
     userPrediction?: PredictionResult;
     onPredict: (matchId: number, prediction: PredictionResult) => void;
-}> = ({ match, teamA, teamB, userPrediction, onPredict }) => {
+  predictionsForMatch?: Prediction[];
+  allowPredict?: boolean;
+  teamPlayersA?: string[];
+  teamPlayersB?: string[];
+  teamNameA?: string;
+  teamNameB?: string;
+}> = ({ match, teamA, teamB, userPrediction, onPredict, predictionsForMatch, allowPredict = true, teamPlayersA = [], teamPlayersB = [], teamNameA = '', teamNameB = '' }) => {
     
     const isCompleted = match.status === 'completed';
 
@@ -63,7 +69,7 @@ const PredictionCard: React.FC<{
 
     const PredictionButton: React.FC<{ result: PredictionResult; label: string }> = ({ result, label }) => (
         <button
-            onClick={() => onPredict(match.id, result)}
+        onClick={() => { if (allowPredict) onPredict(match.id, result); }}
             className={`group w-full py-3 px-2 text-sm rounded-xl transition-all duration-300 transform hover:scale-105 ${
                 userPrediction === result
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-xl shadow-blue-500/50 ring-2 ring-blue-400 scale-105'
@@ -77,19 +83,67 @@ const PredictionCard: React.FC<{
     return (
         <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 rounded-xl p-5 flex flex-col gap-4 shadow-xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20" dir="rtl">
             <div className="flex justify-between items-center text-center">
-                <span className="w-2/5 font-semibold text-sm sm:text-base text-right">{teamA.name}</span>
+                <span className="w-2/5 font-semibold text-sm sm:text-base text-right flex items-center justify-end gap-2">
+                  <span>{teamA.name}</span>
+                  {/* group icon with hover tooltip */}
+                  <div className="relative group">
+                    <span className="text-xs bg-gray-800/60 p-1 rounded-full cursor-default">👥</span>
+                    <div className="absolute right-0 -top-2 translate-y-[-105%] hidden group-hover:block w-48 z-20">
+                      <div className="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-700 shadow-lg text-sm">
+                        <div className="text-xs text-gray-400 mb-1">اعضای تیم: {teamNameA ?? ''}</div>
+                        <div className="max-h-36 overflow-y-auto">
+                          {(teamPlayersA ?? []).map((p, idx) => (
+                            <div key={idx} className="mb-1">{p}</div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </span>
                 <div className="w-1/5 flex flex-col items-center">
                     <span className="text-xs text-gray-500 mb-1">⚔️</span>
                     <span className="text-gray-400 text-sm font-bold">VS</span>
                 </div>
-                <span className="w-2/5 font-semibold text-sm sm:text-base text-left">{teamB.name}</span>
+                    <span className="w-2/5 font-semibold text-sm sm:text-base text-left flex items-center gap-2">
+                      <div className="relative group">
+                        <span className="text-xs bg-gray-800/60 p-1 rounded-full cursor-default">👥</span>
+                        <div className="absolute left-0 -top-2 translate-y-[-105%] hidden group-hover:block w-48 z-20">
+                          <div className="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-700 shadow-lg text-sm">
+                            <div className="text-xs text-gray-400 mb-1">اعضای تیم: {teamNameB ?? ''}</div>
+                            <div className="max-h-36 overflow-y-auto">
+                              {(teamPlayersB ?? []).map((p, idx) => (
+                                <div key={idx} className="mb-1">{p}</div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <span>{teamB.name}</span>
+                    </span>
             </div>
             
             <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-700/50">
-                <PredictionButton result="teamA" label={`برد ${teamA.name.split(':')[0]}`} />
-                <PredictionButton result="draw" label="مساوی" />
-                <PredictionButton result="teamB" label={`برد ${teamB.name.split(':')[0]}`} />
+                {allowPredict ? (
+                  <>
+                    <PredictionButton result="teamA" label={`برد ${teamA.name.split(':')[0]}`} />
+                    <PredictionButton result="draw" label="مساوی" />
+                    <PredictionButton result="teamB" label={`برد ${teamB.name.split(':')[0]}`} />
+                  </>
+                ) : (
+                  <div className="col-span-3 text-sm text-gray-400 text-center py-2">برای ثبت پیش‌بینی باید وارد شوید</div>
+                )}
             </div>
+            {/* Show aggregate counts if available */}
+            {predictionsForMatch && predictionsForMatch.length > 0 && (
+              <div className="pt-3 text-sm text-gray-300 border-t border-gray-700/30">
+                <div className="flex gap-3 items-center">
+                  <span className="font-semibold">آمار پیش‌بینی‌ها:</span>
+                  <span>🏆 {predictionsForMatch.filter(p => p.prediction === 'teamA').length}</span>
+                  <span>🤝 {predictionsForMatch.filter(p => p.prediction === 'draw').length}</span>
+                  <span>🏆 {predictionsForMatch.filter(p => p.prediction === 'teamB').length}</span>
+                </div>
+              </div>
+            )}
         </div>
     );
 };
@@ -97,28 +151,25 @@ const PredictionCard: React.FC<{
 const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predictions, user, onPredict, onLoginClick }) => {
   const getTeamById = (id: number) => teams.find(t => t.id === id);
   
-  if (!user) {
-    return (
-      <div className="text-center bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-10 rounded-2xl border border-gray-700/50 shadow-2xl backdrop-blur-sm animate-fadeIn">
-        <div className="text-6xl mb-4">🔐</div>
-        <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-4">برای ثبت پیش‌بینی وارد شوید</h3>
-        <p className="text-gray-400 mb-6 max-w-md mx-auto">برای شرکت در بخش پیش‌بینی و ثبت امتیاز، لطفاً وارد حساب کاربری خود شوید یا یک حساب جدید بسازید.</p>
-        <button 
-          onClick={onLoginClick} 
-          className="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 hover:from-blue-700 hover:via-blue-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-blue-500/50"
-        >
-          ورود / ثبت‌نام
-        </button>
-      </div>
-    );
-  }
+  const readOnly = !user;
+  const readOnlyBanner = readOnly ? (
+    <div className="text-center bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-2xl border border-gray-700/50 shadow-lg backdrop-blur-sm animate-fadeIn">
+      <div className="text-4xl mb-2">👀</div>
+      <h3 className="text-xl font-bold text-gray-100 mb-2">نمایش عمومی پیش‌بینی‌ها</h3>
+      <p className="text-gray-400 mb-3">برای ثبت یا ویرایش پیش‌بینی‌ها باید وارد شوید — اما نتایج و آمار عمومی برای همه قابل مشاهده‌اند.</p>
+      <button onClick={onLoginClick} className="text-sm underline text-blue-400">ورود / ثبت‌نام</button>
+    </div>
+  ) : null;
 
-  const userPredictedMatchIds = new Set(predictions.map(p => p.match_id));
+  const userPredictedMatchIds = new Set(predictions.filter(p => p.user_id === user?.id).map(p => p.match_id));
 
-  const matchesToShow = matches.filter(m => 
-    m.status === 'scheduled' || 
-    (m.status === 'completed' && userPredictedMatchIds.has(m.id))
-  );
+  // If the user is not logged in we want to show all scheduled and completed matches
+  // with public predictions. If they are logged in, keep the previous behavior so
+  // they see scheduled matches and the completed matches they already predicted.
+  const matchesToShow = matches.filter(m => {
+    if (readOnly) return m.status === 'scheduled' || m.status === 'completed';
+    return m.status === 'scheduled' || (m.status === 'completed' && userPredictedMatchIds.has(m.id));
+  });
 
   const groupedMatches = matchesToShow.reduce((acc, match) => {
     const date = match.match_date || 'بدون تاریخ';
@@ -153,6 +204,7 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
         🎯 پیش‌بینی بازی‌ها
       </h2>
       
+      {readOnlyBanner}
       {matchesToShow.length > 0 ? (
         sortedDates.map(date => (
           <div key={date} className="space-y-4">
@@ -163,9 +215,14 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
               {groupedMatches[date].map(match => {
                 const teamA = getTeamById(match.team_a_id);
                 const teamB = getTeamById(match.team_b_id);
-                const userPrediction = predictions.find(p => p.match_id === match.id && p.user_id === user.id);
+                // Only check a user's prediction if they're logged in
+                const userPrediction = user ? predictions.find(p => p.match_id === match.id && p.user_id === user.id) : undefined;
 
                 if (!teamA || !teamB) return null;
+
+                // Get members of the group (players across all teams with same group name)
+                const teamPlayersA = teamA.players.map(p => p.name);
+                const teamPlayersB = teamB.players.map(p => p.name);
                 
                 return (
                   <PredictionCard
@@ -175,6 +232,12 @@ const PredictionView: React.FC<PredictionViewProps> = ({ matches, teams, predict
                     teamB={teamB}
                     userPrediction={userPrediction?.prediction}
                     onPredict={onPredict}
+                    predictionsForMatch={predictions.filter(p => p.match_id === match.id)}
+                    allowPredict={!readOnly}
+                    teamPlayersA={teamPlayersA}
+                    teamPlayersB={teamPlayersB}
+                    teamNameA={teamA.name}
+                    teamNameB={teamB.name}
                   />
                 );
               })}

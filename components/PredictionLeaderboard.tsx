@@ -62,10 +62,16 @@ const PredictionLeaderboard: React.FC<PredictionLeaderboardProps> = ({ users }) 
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <div className="flex flex-col items-end">
                 <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">{user.score}</span>
                 <span className="text-xs text-gray-400">امتیاز</span>
+              </div>
+              <div className="text-sm text-gray-300 text-right">
+                <div>کل: <span className="text-white font-semibold">{user.totalPredictions ?? 0}</span></div>
+                <div>درست: <span className="text-green-400 font-semibold">{user.correctPredictions ?? 0}</span></div>
+                <div>غلط: <span className="text-red-400 font-semibold">{user.wrongPredictions ?? 0}</span></div>
+                <div>در انتظار: <span className="text-yellow-300 font-semibold">{user.pendingPredictions ?? 0}</span></div>
               </div>
               <TrophyIcon className="w-6 h-6 text-yellow-500" />
             </div>
